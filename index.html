@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Empty Chair</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#C9963A;--gold2:#E8C068;--deep:#07050A;
+  --warm:#1A1208;--sand:#F5EDD8;--muted:#6B5F4A;
+  --red:#8B1A1A;--sepia:#2C1A0E;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--deep);}
+body{font-family:'Lato',sans-serif;cursor:none;}
+
+#cur{position:fixed;width:10px;height:10px;border-radius:50%;background:var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width 0.3s,height 0.3s,opacity 0.3s;mix-blend-mode:difference;}
+#cur.big{width:48px;height:48px;background:rgba(201,150,58,0.15);border:1px solid rgba(201,150,58,0.5);}
+
+.scene{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1.4s ease;}
+.scene.active{opacity:1;pointer-events:all;}
+
+#prog{position:fixed;bottom:0;left:0;height:1px;background:rgba(201,150,58,0.4);z-index:100;transition:width 1.2s ease;}
+#soundbtn{position:fixed;top:28px;right:28px;z-index:200;background:transparent;border:1px solid rgba(201,150,58,0.25);color:rgba(201,150,58,0.6);font-size:10px;letter-spacing:0.18em;padding:8px 14px;cursor:pointer;font-family:'Lato',sans-serif;transition:all 0.4s;}
+#soundbtn:hover{border-color:var(--gold);color:var(--gold);}
+#nav{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:100;}
+.ndot{width:5px;height:5px;border-radius:50%;background:rgba(201,150,58,0.15);transition:all 0.5s;cursor:pointer;}
+.ndot.on{background:var(--gold);transform:scale(1.6);}
+
+@keyframes rise{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadein{from{opacity:0;}to{opacity:1;}}
+@keyframes pulse-out{0%{transform:scale(1);opacity:0.5;}100%{transform:scale(2.4);opacity:0;}}
+@keyframes breathe{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
+@keyframes flicker{0%,100%{opacity:0.3;}50%{opacity:0.8;}}
+@keyframes float-up{0%{opacity:0;transform:translateY(0);}25%{opacity:1;}100%{opacity:0;transform:translateY(-100px);}}
+@keyframes glow-pulse{0%,100%{opacity:0.3;transform:scale(1);}50%{opacity:0.7;transform:scale(1.08);}}
+@keyframes tag-in{from{opacity:0;transform:rotate(4deg) translateY(8px);}to{opacity:1;transform:rotate(4deg) translateY(0);}}
+@keyframes hand-draw{from{stroke-dashoffset:1000;}to{stroke-dashoffset:0;}}
+@keyframes dust{0%{opacity:0;transform:translateY(0) translateX(0);}50%{opacity:0.6;}100%{opacity:0;transform:translateY(-60px) translateX(var(--dx));}}
+@keyframes tear{0%{opacity:0;transform:translateY(0);}100%{opacity:0;transform:translateY(40px);}}
+
+/* ── SCENE 1: OPENING ── */
+#s1{background:var(--deep);flex-direction:column;}
+.s1-inner{display:flex;flex-direction:column;align-items:center;gap:48px;}
+.pulse-wrap{position:relative;width:180px;height:180px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.pulse-wrap::before,.pulse-wrap::after,.pulse-wrap .p3{content:'';position:absolute;width:100%;height:100%;border-radius:50%;border:1px solid rgba(201,150,58,0.18);animation:pulse-out 3s ease-out infinite;}
+.pulse-wrap::after{animation-delay:1s;}
+.pulse-wrap .p3{animation-delay:2s;}
+.hand-anim{width:72px;height:72px;animation:breathe 3.5s ease-in-out infinite;}
+.tap-hint{font-size:10px;letter-spacing:0.3em;color:var(--muted);text-transform:uppercase;animation:flicker 4s ease-in-out infinite;}
+
+/* ── SCENE 2: MEMORY OBJECT ── */
+#s2{flex-direction:column;gap:40px;padding:40px;}
+#s2 .scene-q{font-family:'Playfair Display',serif;font-size:clamp(1.1rem,2.2vw,1.6rem);color:var(--sand);text-align:center;font-weight:400;opacity:0;animation:rise 1s ease 0.2s forwards;}
+.obj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:680px;width:100%;}
+.obj-card{background:rgba(255,255,255,0.02);border:1px solid rgba(201,150,58,0.12);border-radius:3px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;cursor:pointer;transition:all 0.45s;position:relative;overflow:hidden;}
+.obj-card::before{content:'';position:absolute;inset:0;background:rgba(201,150,58,0.05);opacity:0;transition:opacity 0.4s;}
+.obj-card:hover{border-color:rgba(201,150,58,0.5);transform:translateY(-3px);}
+.obj-card:hover::before{opacity:1;}
+.obj-card.picked{border-color:var(--gold);background:rgba(201,150,58,0.07);}
+.obj-card svg{width:60px;height:60px;transition:transform 0.4s;}
+.obj-card:hover svg,.obj-card.picked svg{transform:scale(1.08);}
+.obj-label{font-size:10px;letter-spacing:0.22em;color:var(--muted);text-transform:uppercase;}
+
+/* ── SCENE 3: LAST TIME ── */
+#s3{flex-direction:column;gap:44px;padding:40px;}
+#s3 .scene-q{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,2.8vw,2rem);color:var(--sand);text-align:center;font-style:italic;opacity:0;animation:rise 1s ease 0.2s forwards;}
+.time-btns{display:flex;flex-direction:column;gap:14px;width:100%;max-width:520px;}
+.tbtn{background:transparent;border:1px solid rgba(201,150,58,0.15);color:var(--muted);font-family:'Lato',sans-serif;font-size:13px;letter-spacing:0.08em;padding:18px 28px;cursor:pointer;text-align:left;transition:all 0.4s;position:relative;overflow:hidden;}
+.tbtn .bar{position:absolute;left:0;top:0;height:100%;background:rgba(201,150,58,0.12);width:0%;transition:width 1.8s ease;}
+.tbtn .pct{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--gold);opacity:0;transition:opacity 0.6s;}
+.tbtn:hover{border-color:rgba(201,150,58,0.4);color:var(--sand);}
+.tbtn.chosen{border-color:var(--gold);color:var(--sand);}
+
+/* ── SCENE 4: THE CRAFTSMAN ── */
+#s4{background:var(--sepia);flex-direction:column;}
+.craftsman-stage{width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr;position:relative;}
+.cs-left{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 40px;gap:32px;position:relative;}
+.cs-right{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 40px;border-left:1px solid rgba(201,150,58,0.08);gap:28px;}
+.craftsman-portrait{position:relative;width:240px;height:300px;}
+.portrait-glow{position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(circle,rgba(201,150,58,0.06) 0%,transparent 70%);}
+.voice-bubbles{display:flex;flex-direction:column;gap:20px;max-width:360px;}
+.vbubble{opacity:0;transform:translateX(10px);transition:all 0.8s ease;background:rgba(255,255,255,0.03);border-left:2px solid rgba(201,150,58,0.3);padding:16px 20px;border-radius:0 4px 4px 0;}
+.vbubble.show{opacity:1;transform:translateX(0);}
+.vbubble.highlight{border-left-color:var(--gold);background:rgba(201,150,58,0.05);}
+.vbubble p{font-family:'Playfair Display',serif;font-size:clamp(0.9rem,1.6vw,1.1rem);color:var(--sand);line-height:1.7;font-style:italic;font-weight:400;}
+.vbubble .who{font-size:10px;letter-spacing:0.18em;color:var(--muted);text-transform:uppercase;margin-top:8px;}
+.dust-particle{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(201,150,58,0.4);animation:dust 4s ease-out infinite;}
+
+/* Craftsman SVG illustration */
+.craftsman-svg{width:220px;height:280px;}
+
+/* Hands close-up */
+.hands-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
+.hands-svg{width:200px;height:140px;}
+.hand-path{stroke-dasharray:800;stroke-dashoffset:800;animation:hand-draw 3s ease 0.5s forwards;}
+
+/* ── SCENE 5: CHAIN ── */
+#s5{flex-direction:column;gap:0;padding:60px;}
+.chain{display:flex;flex-direction:column;gap:0;max-width:680px;width:100%;}
+.chain-item{display:flex;align-items:flex-start;gap:20px;padding:18px 0;opacity:0;transform:translateX(-16px);transition:all 0.8s ease;border-bottom:1px solid rgba(255,255,255,0.03);}
+.chain-item.show{opacity:1;transform:translateX(0);}
+.chain-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;margin-top:6px;transition:all 0.6s;}
+.chain-item.show .chain-dot{background:var(--gold);}
+.chain-text{font-family:'Playfair Display',serif;font-size:clamp(0.95rem,1.8vw,1.2rem);color:var(--sand);line-height:1.5;}
+.chain-sub{font-size:11px;color:var(--muted);margin-top:5px;letter-spacing:0.04em;line-height:1.5;}
+.chain-item.final .chain-text{color:var(--gold2);font-size:clamp(1.1rem,2.2vw,1.5rem);}
+.chain-item.final .chain-dot{background:var(--gold2);width:12px;height:12px;box-shadow:0 0 16px rgba(201,150,58,0.6);}
+.chain-hint{margin-top:28px;font-size:10px;letter-spacing:0.22em;color:rgba(107,95,74,0.5);text-transform:uppercase;opacity:0;transition:opacity 0.8s;align-self:center;}
+.chain-hint.show{opacity:1;}
+
+/* ── SCENE 6: VITALS ── */
+#s6{flex-direction:column;gap:40px;padding:60px;}
+.vitals-wrap{display:flex;flex-direction:column;gap:20px;width:100%;max-width:680px;}
+.vital-row{display:grid;grid-template-columns:190px 1fr 90px;align-items:center;gap:24px;padding:18px 0;border-bottom:1px solid rgba(255,255,255,0.04);opacity:0;transform:translateY(8px);transition:all 0.7s ease;}
+.vital-row.show{opacity:1;transform:translateY(0);}
+.v-name{font-family:'Playfair Display',serif;font-size:0.95rem;color:var(--sand);}
+.v-craft{font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:3px;}
+.v-bar-wrap{height:3px;background:rgba(255,255,255,0.05);border-radius:2px;position:relative;}
+.v-bar{height:100%;border-radius:2px;background:var(--gold);width:0%;transition:width 2.2s ease;}
+.v-bar.red{background:var(--red);}
+.v-num{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--gold);text-align:right;line-height:1;}
+.v-num.red{color:var(--red);}
+.v-sub{font-size:10px;color:var(--muted);margin-top:3px;text-align:right;}
+.vitals-line{font-family:'Playfair Display',serif;font-size:clamp(1.1rem,2.2vw,1.6rem);color:var(--sand);text-align:center;font-style:italic;opacity:0;}
+.vitals-line.show{animation:rise 1s ease forwards;}
+
+/* ── SCENE 7: THE CHAIR REVEAL ── */
+#s7{flex-direction:column;gap:36px;}
+.chair-stage{position:relative;display:flex;align-items:center;justify-content:center;width:280px;height:320px;}
+.chair-glow-ring{position:absolute;width:100%;height:100%;border-radius:50%;background:radial-gradient(circle,rgba(201,150,58,0.07) 0%,transparent 70%);animation:glow-pulse 4s ease-in-out infinite;}
+.reserved-tag{position:absolute;top:12px;right:-28px;background:var(--warm);border:1px solid rgba(201,150,58,0.5);padding:7px 14px;font-size:9px;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase;transform:rotate(4deg);opacity:0;animation:tag-in 0.8s ease 2s forwards;}
+.chair-big-line{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4.5vw,3.2rem);color:var(--sand);text-align:center;font-weight:400;max-width:580px;opacity:0;animation:rise 1.4s ease 0.6s forwards;line-height:1.2;}
+.chair-sub{font-size:11px;letter-spacing:0.22em;color:var(--muted);text-transform:uppercase;opacity:0;animation:rise 1s ease 1.2s forwards;}
+
+/* ── SCENE 8: CLAIM ── */
+#s8{background:var(--warm);flex-direction:column;gap:32px;}
+.names-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.float-name{position:absolute;font-family:'Playfair Display',serif;font-size:12px;color:rgba(201,150,58,0.35);animation:float-up 3.5s ease forwards;pointer-events:none;}
+.claim-wrap{display:flex;flex-direction:column;align-items:center;gap:28px;max-width:500px;width:100%;padding:40px;position:relative;z-index:2;}
+.counter-row{display:flex;align-items:baseline;gap:12px;}
+.counter-num{font-family:'Playfair Display',serif;font-size:2.8rem;color:var(--gold);line-height:1;}
+.counter-label{font-size:10px;letter-spacing:0.18em;color:var(--muted);text-transform:uppercase;}
+.actions{display:flex;flex-direction:column;gap:12px;width:100%;}
+.cact{display:flex;align-items:center;gap:16px;padding:18px 22px;border:1px solid rgba(201,150,58,0.15);cursor:pointer;transition:all 0.4s;position:relative;overflow:hidden;}
+.cact::before{content:'';position:absolute;left:0;top:0;width:0%;height:100%;background:rgba(201,150,58,0.07);transition:width 0.5s ease;}
+.cact:hover::before{width:100%;}
+.cact:hover{border-color:rgba(201,150,58,0.5);}
+.cact-icon{width:32px;height:32px;flex-shrink:0;}
+.cact-text{font-family:'Playfair Display',serif;font-size:0.95rem;color:var(--sand);}
+.cact-arrow{margin-left:auto;color:rgba(201,150,58,0.5);font-size:16px;transition:transform 0.3s;}
+.cact:hover .cact-arrow{transform:translateX(5px);color:var(--gold);}
+.claim-btn{width:100%;background:var(--gold);border:none;color:var(--deep);font-family:'Playfair Display',serif;font-size:1.05rem;padding:18px;cursor:pointer;transition:all 0.4s;letter-spacing:0.06em;margin-top:4px;}
+.claim-btn:hover{background:var(--gold2);}
+.claim-btn:active{transform:scale(0.99);}
+.campaign-quote{font-family:'Playfair Display',serif;font-size:clamp(0.85rem,1.6vw,1.05rem);color:rgba(107,95,74,0.7);text-align:center;font-style:italic;max-width:440px;line-height:1.7;}
+
+/* presenter */
+#pres-panel{display:none;position:fixed;inset:0;background:#080808;padding:48px;flex-direction:column;gap:20px;z-index:600;}
+#pres-panel.show{display:flex;}
+.pres-scene-label{font-size:11px;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;}
+.pres-note-box{background:#0f0f0f;border:1px solid #1a1a1a;padding:28px;font-size:13px;color:#666;line-height:1.8;flex:1;font-family:'Lato',sans-serif;}
+.pres-note-box strong{color:var(--gold);font-weight:400;}
+.pres-note-box em{color:#888;font-style:normal;}
+.pres-btns{display:flex;gap:14px;}
+.pbtn{background:transparent;border:1px solid #252525;color:#444;padding:12px 22px;cursor:pointer;font-size:11px;letter-spacing:0.12em;transition:all 0.3s;font-family:'Lato',sans-serif;text-transform:uppercase;}
+.pbtn:hover{border-color:#555;color:#888;}
+.pbtn.gold{border-color:var(--gold);color:var(--gold);}
+.pbtn.gold:hover{background:var(--gold);color:var(--deep);}
+
+@media(max-width:768px){
+  .craftsman-stage{grid-template-columns:1fr;}
+  .cs-right{display:none;}
+  .obj-grid{grid-template-columns:repeat(2,1fr);}
+  .vital-row{grid-template-columns:130px 1fr 70px;}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="prog"></div>
+<button id="soundbtn" onclick="toggleSound()">&#9834; sound</button>
+<div id="nav"></div>
+
+<!-- ══ SCENE 1: OPENING ══ -->
+<section class="scene active" id="s1">
+  <div class="s1-inner">
+    <div class="pulse-wrap" onclick="s1Click()">
+      <div class="p3"></div>
+      <svg class="hand-anim" viewBox="0 0 72 72" fill="none">
+        <path d="M36 7C32.5 7 30 9.8 30 13.2V34C28 32.2 25 31.2 22 32.2C18.5 33.2 16.5 37 16.5 40.8V50C16.5 61 25 68 35 68L48 68C56.5 68 62 62 62 54V26C62 22.2 59 19 55 19C53.2 19 51.5 19.8 50.5 21C49.5 18.5 47 17 44 17C42.2 17 40.5 17.8 39.5 19C38.5 16.5 36 15 36 13.2V7Z" stroke="#C9963A" stroke-width="1.2" fill="rgba(201,150,58,0.04)"/>
+        <line x1="30" y1="34" x2="30" y2="13" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="44" y1="34" x2="44" y2="17" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="50.5" y1="34" x2="50.5" y2="21" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/>
+        <circle cx="36" cy="48" r="2.5" fill="rgba(201,150,58,0.25)"/>
+      </svg>
+    </div>
+    <p class="tap-hint">touch to begin</p>
+  </div>
+</section>
+
+<!-- ══ SCENE 2: MEMORY OBJECT ══ -->
+<section class="scene" id="s2">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:36px;width:100%;padding:40px;">
+    <p class="scene-q">Which of these lived in your home growing up?</p>
+    <div class="obj-grid">
+      <div class="obj-card" onclick="pickObj(this,'elephant')">
+        <svg viewBox="0 0 64 64" fill="none"><path d="M8 46C8 30 17 21 32 21C47 21 56 30 56 46" stroke="#C9963A" stroke-width="1.3" fill="rgba(201,150,58,0.04)"/><ellipse cx="32" cy="46" rx="24" ry="11" fill="rgba(201,150,58,0.06)" stroke="#C9963A" stroke-width="0.8"/><circle cx="23" cy="37" r="2.5" fill="rgba(201,150,58,0.35)"/><path d="M16 39C12 37 8 42 10 48" stroke="#C9963A" stroke-width="1.3" stroke-linecap="round"/><path d="M48 39C52 37 56 42 54 48" stroke="#C9963A" stroke-width="1.3" stroke-linecap="round"/><path d="M27 21C27 14 22 10 22 10" stroke="#C9963A" stroke-width="1.3" stroke-linecap="round"/><path d="M20 12C18 10 21 7 23 10" stroke="#C9963A" stroke-width="1" stroke-linecap="round"/></svg>
+        <span class="obj-label">Carved elephant</span>
+      </div>
+      <div class="obj-card" onclick="pickObj(this,'box')">
+        <svg viewBox="0 0 64 64" fill="none"><rect x="10" y="30" width="44" height="26" rx="2" stroke="#C9963A" stroke-width="1.3" fill="rgba(201,150,58,0.04)"/><path d="M10 30L32 19L54 30" stroke="#C9963A" stroke-width="1.3"/><rect x="10" y="30" width="44" height="5" fill="rgba(201,150,58,0.08)" stroke="none"/><path d="M26 44C26 42 28.5 40 32 40C35.5 40 38 42 38 44" stroke="#C9963A" stroke-width="1" stroke-linecap="round"/><circle cx="32" cy="45" r="2" fill="rgba(201,150,58,0.4)"/><line x1="10" y1="43" x2="54" y2="43" stroke="#C9963A" stroke-width="0.5" opacity="0.4"/></svg>
+        <span class="obj-label">Wooden box</span>
+      </div>
+      <div class="obj-card" onclick="pickObj(this,'batik')">
+        <svg viewBox="0 0 64 64" fill="none"><path d="M21 10L17 25L12 52L52 52L47 25L43 10Z" stroke="#C9963A" stroke-width="1.3" fill="rgba(201,150,58,0.04)"/><path d="M21 10C25 15 39 15 43 10" stroke="#C9963A" stroke-width="1.3"/><path d="M17 25L12 18M47 25L52 18" stroke="#C9963A" stroke-width="1.3" stroke-linecap="round"/><circle cx="24" cy="28" r="2" fill="rgba(201,150,58,0.3)"/><circle cx="32" cy="24" r="1.5" fill="rgba(201,150,58,0.25)"/><circle cx="40" cy="30" r="2" fill="rgba(201,150,58,0.3)"/><circle cx="28" cy="38" r="1.5" fill="rgba(201,150,58,0.2)"/><circle cx="36" cy="42" r="1.5" fill="rgba(201,150,58,0.2)"/><path d="M19 34Q32 30 45 34" stroke="#C9963A" stroke-width="0.7" stroke-linecap="round" opacity="0.5"/></svg>
+        <span class="obj-label">Batik frock</span>
+      </div>
+      <div class="obj-card" onclick="pickObj(this,'mat')">
+        <svg viewBox="0 0 64 64" fill="none"><rect x="8" y="22" width="48" height="22" rx="2" stroke="#C9963A" stroke-width="1.3" fill="rgba(201,150,58,0.04)"/><line x1="8" y1="29" x2="56" y2="29" stroke="#C9963A" stroke-width="0.7" opacity="0.6"/><line x1="8" y1="36" x2="56" y2="36" stroke="#C9963A" stroke-width="0.7" opacity="0.6"/><line x1="20" y1="22" x2="20" y2="44" stroke="#C9963A" stroke-width="0.7" opacity="0.6"/><line x1="32" y1="22" x2="32" y2="44" stroke="#C9963A" stroke-width="0.7" opacity="0.6"/><line x1="44" y1="22" x2="44" y2="44" stroke="#C9963A" stroke-width="0.7" opacity="0.6"/><path d="M8 44L8 52M56 44L56 52" stroke="#C9963A" stroke-width="1.5" stroke-linecap="round"/><path d="M8 52L20 55L44 52L56 55" stroke="#C9963A" stroke-width="0.7" stroke-linecap="round" opacity="0.5"/></svg>
+        <span class="obj-label">Woven mat</span>
+      </div>
+      <div class="obj-card" onclick="pickObj(this,'mask')">
+        <svg viewBox="0 0 64 64" fill="none"><path d="M32 8C19 8 13 19 13 31C13 43 19 55 32 55C45 55 51 43 51 31C51 19 45 8 32 8Z" stroke="#C9963A" stroke-width="1.3" fill="rgba(201,150,58,0.04)"/><ellipse cx="23" cy="29" rx="5" ry="6" stroke="#C9963A" stroke-width="1"/><ellipse cx="41" cy="29" rx="5" ry="6" stroke="#C9963A" stroke-width="1"/><path d="M26 44Q32 49 38 44" stroke="#C9963A" stroke-width="1.3" stroke-linecap="round"/><path d="M19 20C17 15 22 11 24 16" stroke="#C9963A" stroke-width="1" stroke-linecap="round"/><path d="M45 20C47 15 42 11 40 16" stroke="#C9963A" stroke-width="1" stroke-linecap="round"/><path d="M27 35Q32 38 37 35" stroke="#C9963A" stroke-width="0.7" stroke-linecap="round" opacity="0.5"/></svg>
+        <span class="obj-label">Kolam mask</span>
+      </div>
+      <div class="obj-card" onclick="pickObj(this,'spoon')">
+        <svg viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="18" rx="11" ry="13" stroke="#C9963A" stroke-width="1.3" fill="rgba(201,150,58,0.07)"/><path d="M27 29L25 56M37 29L39 56" stroke="#C9963A" stroke-width="1.3" stroke-linecap="round"/><path d="M25 56Q32 59 39 56" stroke="#C9963A" stroke-width="1.3" stroke-linecap="round"/><path d="M28 20Q32 16 36 20" stroke="#C9963A" stroke-width="0.8"/><path d="M27 24Q32 21 37 24" stroke="#C9963A" stroke-width="0.6" opacity="0.5"/></svg>
+        <span class="obj-label">Wooden ladle</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SCENE 3: LAST TIME ══ -->
+<section class="scene" id="s3">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:40px;max-width:560px;width:100%;padding:40px;">
+    <p class="scene-q" style="font-family:'Playfair Display',serif;font-size:clamp(1.3rem,2.8vw,2rem);color:var(--sand);text-align:center;font-style:italic;opacity:0;animation:rise 1s ease 0.2s forwards;">When did you last buy something handmade in Sri Lanka?</p>
+    <div class="time-btns">
+      <button class="tbtn" onclick="pickTime(this,0)"><div class="bar" id="b0"></div><div class="pct" id="p0"></div>Recently — last few months</button>
+      <button class="tbtn" onclick="pickTime(this,1)"><div class="bar" id="b1"></div><div class="pct" id="p1"></div>About a year or two ago</button>
+      <button class="tbtn" onclick="pickTime(this,2)"><div class="bar" id="b2"></div><div class="pct" id="p2"></div>Years ago — I honestly can't remember</button>
+      <button class="tbtn" onclick="pickTime(this,3)"><div class="bar" id="b3"></div><div class="pct" id="p3"></div>I don't think I ever have</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SCENE 4: THE CRAFTSMAN ══ -->
+<section class="scene" id="s4">
+  <div class="craftsman-stage">
+
+    <!-- LEFT: Portrait + hands -->
+    <div class="cs-left">
+      <div class="portrait-glow"></div>
+
+      <!-- Craftsman illustration -->
+      <svg class="craftsman-svg" viewBox="0 0 220 280" fill="none">
+        <!-- warm ambient glow behind figure -->
+        <ellipse cx="110" cy="260" rx="80" ry="16" fill="rgba(201,150,58,0.06)"/>
+        <!-- body -->
+        <path d="M75 105C75 88 120 82 145 88L155 160L65 160Z" fill="rgba(201,150,58,0.08)" stroke="#C9963A" stroke-width="0.8"/>
+        <!-- head -->
+        <ellipse cx="110" cy="68" rx="28" ry="32" fill="rgba(201,150,58,0.1)" stroke="#C9963A" stroke-width="0.8"/>
+        <!-- face features -->
+        <path d="M100 62C100 58 105 55 110 55C115 55 120 58 120 62" stroke="#C9963A" stroke-width="0.6" fill="none" opacity="0.5"/>
+        <ellipse cx="102" cy="70" rx="4" ry="5" fill="rgba(201,150,58,0.15)" stroke="#C9963A" stroke-width="0.5"/>
+        <ellipse cx="118" cy="70" rx="4" ry="5" fill="rgba(201,150,58,0.15)" stroke="#C9963A" stroke-width="0.5"/>
+        <path d="M104 80Q110 84 116 80" stroke="#C9963A" stroke-width="0.8" stroke-linecap="round"/>
+        <!-- hair white -->
+        <path d="M84 62C82 50 90 40 110 38C130 40 138 50 136 62" stroke="#C9963A" stroke-width="0.5" fill="rgba(255,255,255,0.04)"/>
+        <!-- arms working -->
+        <path d="M75 130L48 155L55 170" stroke="#C9963A" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M145 128L175 150L168 168" stroke="#C9963A" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- legs -->
+        <line x1="85" y1="160" x2="78" y2="230" stroke="#C9963A" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="135" y1="160" x2="142" y2="230" stroke="#C9963A" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- feet -->
+        <path d="M70 230L86 234" stroke="#C9963A" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M134 230L150 234" stroke="#C9963A" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- tool / work in hands -->
+        <ellipse cx="52" cy="170" rx="12" ry="8" fill="rgba(201,150,58,0.15)" stroke="#C9963A" stroke-width="0.8"/>
+        <ellipse cx="170" cy="168" rx="12" ry="8" fill="rgba(201,150,58,0.15)" stroke="#C9963A" stroke-width="0.8"/>
+        <!-- work piece between hands - mask in progress -->
+        <path d="M64 175Q110 195 156 175Q150 210 110 215Q70 210 64 175Z" fill="rgba(201,150,58,0.06)" stroke="#C9963A" stroke-width="0.7"/>
+        <!-- chair he sits on -->
+        <rect x="70" y="195" width="80" height="8" rx="2" fill="rgba(201,150,58,0.08)" stroke="#C9963A" stroke-width="0.6"/>
+        <line x1="78" y1="203" x2="74" y2="240" stroke="#C9963A" stroke-width="1" stroke-linecap="round"/>
+        <line x1="142" y1="203" x2="146" y2="240" stroke="#C9963A" stroke-width="1" stroke-linecap="round"/>
+        <!-- dust particles -->
+        <circle cx="48" cy="140" r="1" fill="rgba(201,150,58,0.3)" opacity="0.6" class="dust-particle" style="--dx:20px;animation-delay:0s;animation-duration:3.5s"/>
+        <circle cx="175" cy="145" r="1" fill="rgba(201,150,58,0.3)" opacity="0.5" class="dust-particle" style="--dx:-15px;animation-delay:1.2s;animation-duration:4s"/>
+        <circle cx="110" cy="105" r="0.8" fill="rgba(201,150,58,0.25)" class="dust-particle" style="--dx:10px;animation-delay:2s;animation-duration:3s"/>
+      </svg>
+
+      <div style="text-align:center;">
+        <div style="font-size:10px;letter-spacing:0.22em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Master craftsman</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--sand);">Piyadasa, 71</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Kolam mask maker · Ambalangoda · 47 years</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: His voice — words that appear one by one -->
+    <div class="cs-right">
+      <div style="font-size:10px;letter-spacing:0.22em;color:rgba(201,150,58,0.4);text-transform:uppercase;margin-bottom:8px;">In his own words</div>
+      <div class="voice-bubbles" id="voiceBubbles">
+        <div class="vbubble" id="vb0">
+          <p>"My father taught me this. His father taught him. Four generations. The masks used to fill this room."</p>
+          <div class="who">— on his craft</div>
+        </div>
+        <div class="vbubble" id="vb1">
+          <p>"My son went to Colombo. Good job. I was proud. I thought my daughter would stay. She got married. I thought — someone will come."</p>
+          <div class="who">— on the day he realised</div>
+        </div>
+        <div class="vbubble highlight" id="vb2">
+          <p>"Nobody came. But I kept the chair. I always kept the chair. I don't know why. Maybe I still believe someone will sit down."</p>
+          <div class="who">— on the empty chair</div>
+        </div>
+      </div>
+      <!-- Hands close up -->
+      <div class="hands-wrap" style="margin-top:16px;">
+        <svg class="hands-svg" viewBox="0 0 200 140" fill="none">
+          <path class="hand-path" d="M30 110C30 90 45 80 60 75C75 70 90 72 100 70C110 68 125 70 140 75C155 80 170 90 170 110" stroke="#C9963A" stroke-width="1" fill="rgba(201,150,58,0.04)" stroke-dasharray="800" stroke-dashoffset="800"/>
+          <path class="hand-path" d="M50 108C50 95 58 88 68 84C78 80 88 82 100 80C112 78 122 80 132 84C142 88 150 95 150 108" stroke="rgba(201,150,58,0.4)" stroke-width="0.7" fill="none" stroke-dasharray="600" stroke-dashoffset="600" style="animation-delay:0.8s"/>
+          <!-- fingers suggestion -->
+          <path d="M55 85C53 78 56 72 60 75" stroke="#C9963A" stroke-width="0.8" stroke-linecap="round"/>
+          <path d="M70 80C68 73 71 67 75 70" stroke="#C9963A" stroke-width="0.8" stroke-linecap="round"/>
+          <path d="M130 80C132 73 129 67 125 70" stroke="#C9963A" stroke-width="0.8" stroke-linecap="round"/>
+          <path d="M145 85C147 78 144 72 140 75" stroke="#C9963A" stroke-width="0.8" stroke-linecap="round"/>
+          <!-- work in hands - kolam mask shape -->
+          <path d="M68 92Q100 104 132 92Q128 118 100 122Q72 118 68 92Z" fill="rgba(201,150,58,0.08)" stroke="#C9963A" stroke-width="0.8"/>
+          <ellipse cx="90" cy="102" rx="5" ry="6" stroke="rgba(201,150,58,0.5)" stroke-width="0.6"/>
+          <ellipse cx="110" cy="102" rx="5" ry="6" stroke="rgba(201,150,58,0.5)" stroke-width="0.6"/>
+          <path d="M93 112Q100 116 107 112" stroke="rgba(201,150,58,0.5)" stroke-width="0.6" stroke-linecap="round"/>
+          <text x="100" y="135" text-anchor="middle" font-size="9" fill="rgba(201,150,58,0.35)" font-family="Lato,sans-serif" letter-spacing="2">47 years of hands</text>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ SCENE 5: CHAIN OF ASSUMPTION ══ -->
+<section class="scene" id="s5">
+  <div style="width:100%;max-width:660px;padding:60px;display:flex;flex-direction:column;">
+    <div class="chain" id="chain">
+      <div class="chain-item" data-d="0">
+        <div class="chain-dot"></div>
+        <div><div class="chain-text">Piyadasa's son left for Colombo.</div><div class="chain-sub">He assumed his sister would stay and learn.</div></div>
+      </div>
+      <div class="chain-item" data-d="700">
+        <div class="chain-dot"></div>
+        <div><div class="chain-text">The sister got married and moved away.</div><div class="chain-sub">She assumed a neighbour's child would come.</div></div>
+      </div>
+      <div class="chain-item" data-d="1400">
+        <div class="chain-dot"></div>
+        <div><div class="chain-text">The neighbour's child admired the craft.</div><div class="chain-sub">She assumed it was only for craft families to learn.</div></div>
+      </div>
+      <div class="chain-item" data-d="2100">
+        <div class="chain-dot"></div>
+        <div><div class="chain-text">You passed the stall in the Pettah market.</div><div class="chain-sub">You assumed someone else was keeping it alive.</div></div>
+      </div>
+      <div class="chain-item final" data-d="3000">
+        <div class="chain-dot"></div>
+        <div><div class="chain-text">Everyone assumed. So no one did.</div></div>
+      </div>
+    </div>
+    <div class="chain-hint" id="chainHint">click to continue</div>
+  </div>
+</section>
+
+<!-- ══ SCENE 6: VITAL SIGNS ══ -->
+<section class="scene" id="s6">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:36px;width:100%;padding:60px;">
+    <div class="vitals-wrap" id="vitalsWrap">
+      <div class="vital-row" data-d="0" data-w="13" data-r="true">
+        <div><div class="v-name">Dumbara Weaving</div><div class="v-craft">Kandy · Central Province</div></div>
+        <div class="v-bar-wrap"><div class="v-bar red" style="width:0"></div></div>
+        <div><div class="v-num red">3</div><div class="v-sub">masters left</div></div>
+      </div>
+      <div class="vital-row" data-d="500" data-w="18" data-r="true">
+        <div><div class="v-name">Kolam Mask Making</div><div class="v-craft">Ambalangoda · Southern Province</div></div>
+        <div class="v-bar-wrap"><div class="v-bar red" style="width:0"></div></div>
+        <div><div class="v-num red">1</div><div class="v-sub">workshop left</div></div>
+      </div>
+      <div class="vital-row" data-d="1000" data-w="32">
+        <div><div class="v-name">Kandyan Weaving</div><div class="v-craft">Central Province</div></div>
+        <div class="v-bar-wrap"><div class="v-bar" style="width:0"></div></div>
+        <div><div class="v-num">67</div><div class="v-sub">avg. master age</div></div>
+      </div>
+      <div class="vital-row" data-d="1500" data-w="38">
+        <div><div class="v-name">Batik</div><div class="v-craft">Nationwide</div></div>
+        <div class="v-bar-wrap"><div class="v-bar" style="width:0"></div></div>
+        <div><div class="v-num">0</div><div class="v-sub">apprentices under 25</div></div>
+      </div>
+    </div>
+    <p class="vitals-line" id="vitalsLine">Not statistics. People. Still waiting.</p>
+  </div>
+</section>
+
+<!-- ══ SCENE 7: THE EMPTY CHAIR ══ -->
+<section class="scene" id="s7">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:28px;">
+    <div class="chair-stage">
+      <div class="chair-glow-ring"></div>
+      <svg viewBox="0 0 240 280" fill="none" width="240" height="280">
+        <!-- seat -->
+        <rect x="28" y="108" width="184" height="14" rx="4" fill="rgba(201,150,58,0.1)" stroke="#C9963A" stroke-width="0.8"/>
+        <!-- back rest -->
+        <rect x="18" y="38" width="204" height="74" rx="5" fill="rgba(201,150,58,0.07)" stroke="#C9963A" stroke-width="0.8"/>
+        <!-- back rest grain lines -->
+        <path d="M38 48Q120 43 202 48" stroke="rgba(201,150,58,0.2)" stroke-width="0.5" fill="none"/>
+        <path d="M36 62Q120 57 204 62" stroke="rgba(201,150,58,0.15)" stroke-width="0.5" fill="none"/>
+        <path d="M36 76Q120 71 204 76" stroke="rgba(201,150,58,0.12)" stroke-width="0.5" fill="none"/>
+        <path d="M38 90Q120 86 202 90" stroke="rgba(201,150,58,0.1)" stroke-width="0.5" fill="none"/>
+        <!-- seat grain -->
+        <path d="M36 116Q120 112 204 116" stroke="rgba(201,150,58,0.15)" stroke-width="0.4" fill="none"/>
+        <!-- back uprights -->
+        <line x1="26" y1="122" x2="18" y2="38" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="214" y1="122" x2="222" y2="38" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/>
+        <!-- legs -->
+        <line x1="45" y1="122" x2="36" y2="260" stroke="#C9963A" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="195" y1="122" x2="204" y2="260" stroke="#C9963A" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="78" y1="122" x2="74" y2="260" stroke="#C9963A" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="162" y1="122" x2="166" y2="260" stroke="#C9963A" stroke-width="1.8" stroke-linecap="round"/>
+        <!-- crossbar -->
+        <path d="M34 260Q120 268 206 260" stroke="#C9963A" stroke-width="1" stroke-linecap="round" fill="none"/>
+        <!-- lower rung between front legs -->
+        <path d="M74 200Q120 206 166 200" stroke="#C9963A" stroke-width="0.8" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <!-- carved detail on back rest -->
+        <path d="M90 65Q120 58 150 65Q150 85 120 88Q90 85 90 65Z" stroke="rgba(201,150,58,0.3)" stroke-width="0.6" fill="rgba(201,150,58,0.04)"/>
+        <circle cx="120" cy="76" r="5" stroke="rgba(201,150,58,0.25)" stroke-width="0.5" fill="none"/>
+      </svg>
+      <div class="reserved-tag">Reserved</div>
+    </div>
+    <p class="chair-big-line">The chair was always yours.</p>
+    <p class="chair-sub">It has been waiting.</p>
+  </div>
+</section>
+
+<!-- ══ SCENE 8: CLAIM ══ -->
+<section class="scene" id="s8">
+  <div class="names-layer" id="namesLayer"></div>
+  <div class="claim-wrap">
+    <div class="counter-row">
+      <div class="counter-num" id="claimNum">0</div>
+      <div class="counter-label">chairs claimed</div>
+    </div>
+    <div class="actions">
+      <div class="cact" onclick="doAct(this,'find','Every master is still here. Still waiting.')">
+        <svg class="cact-icon" viewBox="0 0 32 32" fill="none"><circle cx="14" cy="14" r="8" stroke="#C9963A" stroke-width="1.2"/><path d="M20 20L27 27" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/><circle cx="14" cy="14" r="3" fill="rgba(201,150,58,0.25)"/></svg>
+        <span class="cact-text">Find a master near you</span>
+        <span class="cact-arrow">→</span>
+      </div>
+      <div class="cact" onclick="doAct(this,'buy','Every purchase keeps a chair warm.')">
+        <svg class="cact-icon" viewBox="0 0 32 32" fill="none"><path d="M7 9L25 9L22 22L10 22Z" stroke="#C9963A" stroke-width="1.2" fill="none" stroke-linejoin="round"/><circle cx="13" cy="26" r="2" fill="#C9963A"/><circle cx="21" cy="26" r="2" fill="#C9963A"/><path d="M11 9L9 5L5 5" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span class="cact-text">Buy something handmade this week</span>
+        <span class="cact-arrow">→</span>
+      </div>
+      <div class="cact" onclick="doAct(this,'share','Tell them the chair is still waiting.')">
+        <svg class="cact-icon" viewBox="0 0 32 32" fill="none"><circle cx="24" cy="8" r="3.5" stroke="#C9963A" stroke-width="1.2"/><circle cx="8" cy="16" r="3.5" stroke="#C9963A" stroke-width="1.2"/><circle cx="24" cy="24" r="3.5" stroke="#C9963A" stroke-width="1.2"/><path d="M11.5 14.2L20.5 10 M11.5 17.8L20.5 22" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span class="cact-text">Tell someone about this chair</span>
+        <span class="cact-arrow">→</span>
+      </div>
+    </div>
+    <button class="claim-btn" id="claimBtn" onclick="claimChair()">I claim my chair</button>
+    <p class="campaign-quote">"Don't let this be the generation that forgot to sit down."</p>
+  </div>
+</section>
+
+<script>
+// ── STATE ──
+let cur=0,total=8,snd=false,picked=null,tpicked=false;
+let votes=[10,26,48,28];
+let claimed=parseInt(localStorage.getItem('ec2_claimed')||'142');
+
+// ── AUDIO ──
+let AC=null;
+function initA(){if(AC)return;AC=new(window.AudioContext||window.webkitAudioContext)();}
+function tone(f,d,v=0.18,t='sine',delay=0){
+  if(!AC||!snd)return;
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.connect(g);g.connect(AC.destination);
+  o.type=t;o.frequency.value=f;
+  const s=AC.currentTime+delay;
+  g.gain.setValueAtTime(0,s);
+  g.gain.linearRampToValueAtTime(v,s+0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001,s+d);
+  o.start(s);o.stop(s+d+0.01);
+}
+function tClick(){tone(720,0.06,0.08);}
+function tSelect(){tone(440,0.18,0.14);tone(554,0.14,0.1,undefined,0.1);}
+function tScene(n){
+  const m=[[196,0.8],[330,0.5],[262,0.4],[174,0.9],[392,0.35],[146,0.7],[523,0.8],[349,0.6]];
+  if(m[n])tone(m[n][0],m[n][1],0.1);
+}
+function tHeart(){tone(75,0.09,0.25,'sine');tone(65,0.07,0.18,'sine',0.13);}
+function tCelebrate(){
+  [523,659,784,1046].forEach((f,i)=>tone(f,0.25,0.15,undefined,i*0.14));
+}
+function toggleSound(){
+  initA();snd=!snd;
+  document.getElementById('soundbtn').textContent=snd?'♪ sound on':'♩ sound';
+  if(snd)tone(440,0.3,0.12);
+}
+
+// ── CURSOR ──
+const curEl=document.getElementById('cur');
+document.addEventListener('mousemove',e=>{
+  curEl.style.left=e.clientX+'px';curEl.style.top=e.clientY+'px';
+});
+document.addEventListener('mousedown',()=>curEl.classList.add('big'));
+document.addEventListener('mouseup',()=>curEl.classList.remove('big'));
+
+// ── HAPTICS ──
+function vib(p){if(navigator.vibrate)navigator.vibrate(p);}
+
+// ── PROGRESS + NAV ──
+function updateUI(){
+  document.getElementById('prog').style.width=(cur/(total-1)*100)+'%';
+  const nav=document.getElementById('nav');nav.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('div');
+    d.className='ndot'+(i===cur?' on':'');
+    d.onclick=()=>{ if(i<=cur)goTo(i); };
+    nav.appendChild(d);
+  }
+}
+
+// ── SCENE MANAGEMENT ──
+const scenes=document.querySelectorAll('.scene');
+function canGo(){
+  if(cur===1&&!picked)return false;
+  if(cur===2&&!tpicked)return false;
+  return true;
+}
+function goTo(n){
+  if(n<0||n>=total)return;
+  scenes[cur].classList.remove('active');
+  cur=n;scenes[cur].classList.add('active');
+  updateUI();
+  if(snd)tScene(cur);
+  vib([25]);
+  onEnter(cur);
+}
+function next(){if(!canGo())return;initA();goTo(cur+1);}
+
+// click anywhere to advance (except interactive elements)
+document.addEventListener('click',e=>{
+  const skip=['.obj-card','.tbtn','.cact','#claimBtn','#soundbtn','.ndot','.pbtn'];
+  if(skip.some(s=>e.target.closest(s)))return;
+  if(cur===0){s1Click();return;}
+  if(cur===4)next();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' ')next();
+  if(e.key==='ArrowLeft')goTo(cur-1);
+});
+
+// ── SCENE ENTRY ──
+function onEnter(n){
+  if(n===3)enterCraftsman();
+  if(n===4)enterChain();
+  if(n===5)enterVitals();
+  if(n===7)startClaim();
+}
+
+// ── S1 ──
+function s1Click(){initA();tSelect();vib([30]);goTo(1);}
+
+// ── S2: PICK OBJECT ──
+function pickObj(el,obj){
+  initA();tSelect();vib([20,10,20]);
+  document.querySelectorAll('.obj-card').forEach(c=>c.classList.remove('picked'));
+  el.classList.add('picked');picked=obj;
+  setTimeout(next,700);
+}
+
+// ── S3: PICK TIME ──
+function pickTime(el,idx){
+  initA();vib([40]);
+  if(tpicked)return;tpicked=true;
+  el.classList.add('chosen');
+  votes[idx]++;
+  const tot=votes.reduce((a,b)=>a+b,0);
+  document.querySelectorAll('.tbtn').forEach((b,i)=>{
+    const pct=Math.round(votes[i]/tot*100);
+    document.getElementById('b'+i).style.width=pct+'%';
+    const pe=document.getElementById('p'+i);
+    pe.style.opacity='1';pe.textContent=pct+'%';
+    setTimeout(()=>b.disabled=true,80);
+  });
+  if(snd){const fr=[500,400,300,180];tone(fr[idx],0.5,0.12);}
+  setTimeout(next,2400);
+}
+
+// ── S4: CRAFTSMAN ──
+let vbTimer=null;
+function enterCraftsman(){
+  const bubs=document.querySelectorAll('.vbubble');
+  bubs.forEach(b=>b.classList.remove('show'));
+  const delays=[0,1600,3200];
+  delays.forEach((d,i)=>{
+    setTimeout(()=>{
+      bubs[i].classList.add('show');
+      if(snd){tone(220+i*40,0.3,0.08);}
+      vib([12]);
+    },d);
+  });
+}
+
+// ── S5: CHAIN ──
+let hbTimer=null;
+function enterChain(){
+  if(hbTimer)clearInterval(hbTimer);
+  const items=document.querySelectorAll('.chain-item');
+  items.forEach(it=>it.classList.remove('show'));
+  items.forEach(it=>{
+    const d=parseInt(it.dataset.d)||0;
+    setTimeout(()=>{
+      it.classList.add('show');
+      if(snd)tone(200+d*0.05,0.12,0.07);
+      vib([12]);
+    },d);
+  });
+  const max=Math.max(...[...items].map(i=>parseInt(i.dataset.d)||0));
+  setTimeout(()=>{
+    document.getElementById('chainHint').classList.add('show');
+    if(snd){
+      hbTimer=setInterval(()=>{
+        if(cur===4)tHeart();
+        else{clearInterval(hbTimer);hbTimer=null;}
+      },1100);
+    }
+  },max+900);
+}
+
+// ── S6: VITALS ──
+function enterVitals(){
+  if(hbTimer){clearInterval(hbTimer);hbTimer=null;}
+  const rows=document.querySelectorAll('.vital-row');
+  rows.forEach(r=>r.classList.remove('show'));
+  rows.forEach(r=>{
+    const d=parseInt(r.dataset.d)||0;
+    const w=parseInt(r.dataset.w)||50;
+    const isCrit=r.dataset.r==='true';
+    setTimeout(()=>{
+      r.classList.add('show');
+      setTimeout(()=>{r.querySelector('.v-bar').style.width=w+'%';},80);
+      if(snd){
+        const f=isCrit?140:280;
+        tone(f,0.35,0.1);
+        if(isCrit)tone(f*0.75,0.25,0.07,undefined,0.38);
+      }
+      vib(isCrit?[35,10,35]:[18]);
+    },d);
+  });
+  const max=Math.max(...[...rows].map(r=>parseInt(r.dataset.d)||0));
+  // heartbeat during vitals
+  if(snd){
+    setTimeout(()=>{
+      let hb=0;
+      const ht=setInterval(()=>{
+        if(cur!==5||hb>10){clearInterval(ht);return;}
+        tHeart();hb++;
+      },900);
+    },max+400);
+  }
+  setTimeout(()=>{
+    const vl=document.getElementById('vitalsLine');
+    vl.classList.add('show');
+    if(snd)tone(185,0.8,0.09);
+  },max+1200);
+}
+
+// ── S8: CLAIM ──
+function startClaim(){
+  document.getElementById('claimNum').textContent=claimed;
+}
+function claimChair(){
+  initA();claimed++;
+  localStorage.setItem('ec2_claimed',claimed);
+  document.getElementById('claimNum').textContent=claimed;
+  vib([60,20,100,20,60]);
+  if(snd)tCelebrate();
+  const btn=document.getElementById('claimBtn');
+  btn.textContent='Chair claimed ✓';
+  btn.style.cssText='width:100%;background:rgba(201,150,58,0.15);border:1px solid var(--gold);color:var(--gold);font-family:"Playfair Display",serif;font-size:1.05rem;padding:18px;cursor:default;';
+  btn.disabled=true;
+  const names=['Dilini','Kasun','Nimal','Sewwandi','Amara','Thilini','Roshan','Priya','Sahan','Chamara','Ruwan','Ishara'];
+  for(let i=0;i<8;i++){
+    setTimeout(()=>{
+      const s=document.createElement('span');
+      s.className='float-name';
+      s.textContent=names[Math.floor(Math.random()*names.length)];
+      s.style.left=Math.random()*82+8+'%';
+      s.style.bottom=Math.random()*50+5+'%';
+      s.style.animationDelay=Math.random()*0.4+'s';
+      document.getElementById('namesLayer').appendChild(s);
+      setTimeout(()=>s.remove(),4000);
+    },i*160);
+  }
+}
+function doAct(el,type,msg){
+  initA();tClick();vib([18]);
+  const t=el.querySelector('.cact-text');
+  const orig=t.textContent;
+  t.textContent=msg;
+  t.style.color='var(--gold)';
+  setTimeout(()=>{t.textContent=orig;t.style.color='';},2200);
+}
+
+// ── PRESENTER MODE ──
+const isP=location.search.includes('presenter');
+const isD=location.search.includes('display');
+const BC=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('ec_chair'):null;
+if(isD&&BC)BC.onmessage=e=>{if(e.data.t==='go')goTo(e.data.n);};
+if(isP){
+  const notes=[
+    '<strong>Scene 1 — Touch.</strong> <em>Pure silence. Let the pulse breathe. Don\'t speak until they click.</em>',
+    '<strong>Scene 2 — Memory.</strong> <em>Watch their face. The moment they pick their object is the insight landing in their body, not their brain.</em>',
+    '<strong>Scene 3 — Last time.</strong> <em>Don\'t explain the bars. Let them grow. The longest bar is the whole campaign in one image.</em>',
+    '<strong>Scene 4 — Piyadasa.</strong> <em>Read his words with the room. Pause after each one. The hands drawing across the screen carry 47 years. Let that sit.</em>',
+    '<strong>Scene 5 — The chain.</strong> <em>Read each line aloud as it arrives. Slow. Then the final line — everyone assumed, so no one did — leave five full seconds of silence.</em>',
+    '<strong>Scene 6 — Vital signs.</strong> <em>Say: these are real numbers. Then stop talking. The heartbeat in the sound does the rest.</em>',
+    '<strong>Scene 7 — The chair.</strong> <em>This is the turn. From guilt to invitation. Warm. Don\'t rush. The reserved tag appearing is the moment.</em>',
+    '<strong>Scene 8 — Claim.</strong> <em>Ask them to click the button. In this room. Right now. Make it real. The counter going up is the campaign working in real time.</em>'
+  ];
+  const pd=document.createElement('div');
+  pd.id='pres-panel';pd.className='show';
+  pd.innerHTML=`
+    <div class="pres-scene-label" id="psl">Scene 1 of 8</div>
+    <div class="pres-note-box" id="pnb"></div>
+    <div class="pres-btns">
+      <button class="pbtn" onclick="pBack()">← Back</button>
+      <button class="pbtn gold" onclick="pNext()">Next →</button>
+      <button class="pbtn" onclick="window.open(location.pathname+'?mode=display','_blank','width=1200,height=750')">Open Display ↗</button>
+    </div>`;
+  document.body.appendChild(pd);
+  function upP(){
+    document.getElementById('psl').textContent='Scene '+(cur+1)+' of '+total;
+    document.getElementById('pnb').innerHTML=notes[cur];
+  }
+  function pNext(){if(BC)BC.postMessage({t:'go',n:cur+1});goTo(cur+1);upP();}
+  function pBack(){if(BC)BC.postMessage({t:'go',n:cur-1});goTo(cur-1);upP();}
+  upP();
+}
+
+// ── INIT ──
+updateUI();
+document.getElementById('claimNum').textContent=claimed;
+</script>
+</body>
+</html>
