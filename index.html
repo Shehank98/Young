@@ -551,7 +551,7 @@ document.addEventListener('click',e=>{
   const skip=['.obj-card','.tbtn','.cact','#claimBtn','#soundbtn','.ndot','.pbtn'];
   if(skip.some(s=>e.target.closest(s)))return;
   if(cur===0){s1Click();return;}
-  if(cur===4)next();
+  next();
 });
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'||e.key===' ')next();
