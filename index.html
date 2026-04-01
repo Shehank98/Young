@@ -157,6 +157,54 @@ button,div[onclick]{touch-action:manipulation;}
 .claim-btn:active{transform:scale(0.99);}
 .campaign-quote{font-family:'Playfair Display',serif;font-size:clamp(0.85rem,1.6vw,1.05rem);color:rgba(107,95,74,0.7);text-align:center;font-style:italic;max-width:440px;line-height:1.7;}
 
+/* ── POST-CLAIM REVEAL ── */
+#s8.claimed{overflow-y:auto;align-items:flex-start;justify-content:flex-start;padding-top:24px;}
+.post-claim{display:none;flex-direction:column;gap:20px;width:100%;}
+.post-claim.show{display:flex;}
+
+.pc-dying{
+  text-align:center;font-family:'Playfair Display',serif;
+  font-size:clamp(0.85rem,1.8vw,1rem);color:rgba(175,100,100,0.9);
+  font-style:italic;line-height:1.7;padding:16px 20px;
+  border:1px solid rgba(139,26,26,0.2);background:rgba(139,26,26,0.04);
+  opacity:0;animation:rise 0.9s ease 0.1s forwards;
+}
+.pc-paths{
+  display:grid;grid-template-columns:1fr 1px 1fr;
+  border:1px solid rgba(201,150,58,0.12);
+  opacity:0;animation:rise 0.9s ease 0.5s forwards;
+}
+.pc-path{padding:20px;}
+.pc-path-div{background:rgba(201,150,58,0.12);}
+.pc-path-tag{font-size:9px;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;margin-bottom:9px;}
+.pc-path-body{font-family:'Playfair Display',serif;font-size:clamp(0.82rem,1.6vw,0.95rem);color:var(--sand);line-height:1.75;}
+.pc-path-cta{margin-top:10px;font-size:9px;letter-spacing:0.18em;color:rgba(201,150,58,0.6);text-transform:uppercase;}
+
+.pc-reframe{
+  opacity:0;animation:rise 0.9s ease 0.9s forwards;
+  padding:18px 22px;border-left:2px solid var(--gold);background:rgba(201,150,58,0.03);
+}
+.pc-rf-bold{
+  font-family:'Playfair Display',serif;font-size:clamp(1rem,2.2vw,1.2rem);
+  color:var(--gold);margin-bottom:9px;letter-spacing:0.03em;
+}
+.pc-rf-sub{font-size:12px;color:var(--muted);line-height:1.75;letter-spacing:0.03em;}
+.pc-rf-highlight{color:var(--gold2);font-style:italic;}
+
+.pc-heritage{
+  opacity:0;animation:rise 0.9s ease 1.3s forwards;
+  text-align:center;padding:12px 0 8px;
+}
+.pc-h-gold{
+  font-family:'Playfair Display',serif;font-size:clamp(1.3rem,3.5vw,2rem);
+  color:var(--gold);margin-bottom:7px;font-style:italic;
+}
+.pc-h-line{
+  font-family:'Playfair Display',serif;font-size:clamp(0.85rem,1.8vw,1.05rem);
+  color:var(--sand);line-height:1.6;margin-bottom:16px;
+}
+.pc-h-credit{font-size:9px;letter-spacing:0.2em;color:rgba(107,95,74,0.35);text-transform:uppercase;}
+
 /* presenter */
 #pres-panel{display:none;position:fixed;inset:0;background:#080808;padding:48px;flex-direction:column;gap:20px;z-index:600;}
 #pres-panel.show{display:flex;}
@@ -255,6 +303,15 @@ button,div[onclick]{touch-action:manipulation;}
   .cact-text{font-size:0.88rem;}
   .claim-btn{padding:16px;font-size:1rem;}
   .campaign-quote{font-size:0.85rem;}
+
+  /* post-claim panels */
+  #s8.claimed{padding-top:16px;}
+  .pc-paths{grid-template-columns:1fr;}
+  .pc-path-div{display:none;}
+  .pc-path{border-bottom:1px solid rgba(201,150,58,0.08);padding:16px;}
+  .pc-path:last-child{border-bottom:none;}
+  .pc-reframe{padding:14px 16px;}
+  .pc-rf-sub{font-size:11px;}
 
   /* presenter */
   #pres-panel{padding:28px 20px;gap:14px;}
@@ -561,25 +618,68 @@ button,div[onclick]{touch-action:manipulation;}
       <div class="counter-num" id="claimNum">0</div>
       <div class="counter-label">chairs claimed</div>
     </div>
-    <div class="actions">
-      <div class="cact" onclick="doAct(this,'find','Every master is still here. Still waiting.')">
-        <svg class="cact-icon" viewBox="0 0 32 32" fill="none"><circle cx="14" cy="14" r="8" stroke="#C9963A" stroke-width="1.2"/><path d="M20 20L27 27" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/><circle cx="14" cy="14" r="3" fill="rgba(201,150,58,0.25)"/></svg>
-        <span class="cact-text">Find a master near you</span>
-        <span class="cact-arrow">→</span>
+    <!-- PRE-CLAIM: actions + button + quote -->
+    <div id="preClaim" style="display:flex;flex-direction:column;gap:12px;width:100%;transition:opacity 0.6s ease;">
+      <div class="actions">
+        <div class="cact" onclick="doAct(this,'find','Every master is still here. Still waiting.')">
+          <svg class="cact-icon" viewBox="0 0 32 32" fill="none"><circle cx="14" cy="14" r="8" stroke="#C9963A" stroke-width="1.2"/><path d="M20 20L27 27" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/><circle cx="14" cy="14" r="3" fill="rgba(201,150,58,0.25)"/></svg>
+          <span class="cact-text">Find a master near you</span>
+          <span class="cact-arrow">→</span>
+        </div>
+        <div class="cact" onclick="doAct(this,'buy','Every purchase keeps a chair warm.')">
+          <svg class="cact-icon" viewBox="0 0 32 32" fill="none"><path d="M7 9L25 9L22 22L10 22Z" stroke="#C9963A" stroke-width="1.2" fill="none" stroke-linejoin="round"/><circle cx="13" cy="26" r="2" fill="#C9963A"/><circle cx="21" cy="26" r="2" fill="#C9963A"/><path d="M11 9L9 5L5 5" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span class="cact-text">Buy something handmade this week</span>
+          <span class="cact-arrow">→</span>
+        </div>
+        <div class="cact" onclick="doAct(this,'share','Tell them the chair is still waiting.')">
+          <svg class="cact-icon" viewBox="0 0 32 32" fill="none"><circle cx="24" cy="8" r="3.5" stroke="#C9963A" stroke-width="1.2"/><circle cx="8" cy="16" r="3.5" stroke="#C9963A" stroke-width="1.2"/><circle cx="24" cy="24" r="3.5" stroke="#C9963A" stroke-width="1.2"/><path d="M11.5 14.2L20.5 10 M11.5 17.8L20.5 22" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span class="cact-text">Tell someone about this chair</span>
+          <span class="cact-arrow">→</span>
+        </div>
       </div>
-      <div class="cact" onclick="doAct(this,'buy','Every purchase keeps a chair warm.')">
-        <svg class="cact-icon" viewBox="0 0 32 32" fill="none"><path d="M7 9L25 9L22 22L10 22Z" stroke="#C9963A" stroke-width="1.2" fill="none" stroke-linejoin="round"/><circle cx="13" cy="26" r="2" fill="#C9963A"/><circle cx="21" cy="26" r="2" fill="#C9963A"/><path d="M11 9L9 5L5 5" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/></svg>
-        <span class="cact-text">Buy something handmade this week</span>
-        <span class="cact-arrow">→</span>
-      </div>
-      <div class="cact" onclick="doAct(this,'share','Tell them the chair is still waiting.')">
-        <svg class="cact-icon" viewBox="0 0 32 32" fill="none"><circle cx="24" cy="8" r="3.5" stroke="#C9963A" stroke-width="1.2"/><circle cx="8" cy="16" r="3.5" stroke="#C9963A" stroke-width="1.2"/><circle cx="24" cy="24" r="3.5" stroke="#C9963A" stroke-width="1.2"/><path d="M11.5 14.2L20.5 10 M11.5 17.8L20.5 22" stroke="#C9963A" stroke-width="1.2" stroke-linecap="round"/></svg>
-        <span class="cact-text">Tell someone about this chair</span>
-        <span class="cact-arrow">→</span>
-      </div>
+      <button class="claim-btn" id="claimBtn" onclick="claimChair()">I claim my chair</button>
+      <p class="campaign-quote">"Don't let this be the generation that forgot to sit down."</p>
     </div>
-    <button class="claim-btn" id="claimBtn" onclick="claimChair()">I claim my chair</button>
-    <p class="campaign-quote">"Don't let this be the generation that forgot to sit down."</p>
+
+    <!-- POST-CLAIM: reveals after button click -->
+    <div class="post-claim" id="postClaim">
+
+      <!-- Panel 1: The dying — one sentence, gut punch -->
+      <div class="pc-dying">
+        When Piyadasa goes, 47 years of technique go with him.<br>There is no copy. There is no backup.
+      </div>
+
+      <!-- Panel 2: Two paths in -->
+      <div class="pc-paths">
+        <div class="pc-path">
+          <div class="pc-path-tag">If your family makes crafts</div>
+          <div class="pc-path-body">Your parents kept this alive through low seasons, no apprentices, and rising costs. They stayed. The knowledge is still here because of them. Now it needs you to lead it — not as a burden, but as a business the world is ready to pay for.</div>
+          <div class="pc-path-cta">Come home. Carry it forward →</div>
+        </div>
+        <div class="pc-path-div"></div>
+        <div class="pc-path">
+          <div class="pc-path-tag">If you want to enter</div>
+          <div class="pc-path-body">You don't need to be born into it. Masters across Sri Lanka are ready to teach. The chairs are empty. The knowledge is waiting. The only barrier that ever existed was the assumption that it wasn't for you.</div>
+          <div class="pc-path-cta">It was always for you. Sit down →</div>
+        </div>
+      </div>
+
+      <!-- Panel 3: The real picture — income + outdated myth broken -->
+      <div class="pc-reframe">
+        <div class="pc-rf-bold">Not low income. Not outdated. Unbranded.</div>
+        <div class="pc-rf-sub">
+          Global demand for authentic handcraft has grown 34% in five years. A Sri Lankan mask sells for ₨ 3,500 at a local stall and <span class="pc-rf-highlight">₨ 38,000 on a global marketplace.</span> Masters who teach online earn more than they ever did in a workshop. The gap isn't skill. It isn't product. <span class="pc-rf-highlight">It's the generation willing to close it.</span>
+        </div>
+      </div>
+
+      <!-- Panel 4: Heritage is future — the close -->
+      <div class="pc-heritage">
+        <div class="pc-h-gold">This is not the past.</div>
+        <div class="pc-h-line">It is the most undervalued opportunity in Sri Lanka —<br>and you just claimed your seat in it.</div>
+        <div class="pc-h-credit">The Empty Chair · Young Lions Sri Lanka · 2026</div>
+      </div>
+
+    </div>
   </div>
 </section>
 
@@ -791,6 +891,13 @@ function enterVitals(){
 // ── S8: CLAIM ──
 function startClaim(){
   document.getElementById('claimNum').textContent=claimed;
+  // reset post-claim state on re-entry if not yet claimed
+  if(!document.getElementById('claimBtn').disabled){
+    const pre=document.getElementById('preClaim');
+    pre.style.display='flex';pre.style.opacity='1';
+    document.getElementById('postClaim').classList.remove('show');
+    document.getElementById('s8').classList.remove('claimed');
+  }
 }
 function claimChair(){
   initA();claimed++;
@@ -798,23 +905,48 @@ function claimChair(){
   document.getElementById('claimNum').textContent=claimed;
   vib([60,20,100,20,60]);
   if(snd)tCelebrate();
+
+  // transform button
   const btn=document.getElementById('claimBtn');
   btn.textContent='Chair claimed ✓';
-  btn.style.cssText='width:100%;background:rgba(201,150,58,0.15);border:1px solid var(--gold);color:var(--gold);font-family:"Playfair Display",serif;font-size:1.05rem;padding:18px;cursor:default;';
+  btn.style.cssText='width:100%;background:rgba(201,150,58,0.15);border:1px solid var(--gold);color:var(--gold);font-family:"Playfair Display",serif;font-size:1.05rem;padding:18px;cursor:default;letter-spacing:0.06em;';
   btn.disabled=true;
-  const names=['Dilini','Kasun','Nimal','Sewwandi','Amara','Thilini','Roshan','Priya','Sahan','Chamara','Ruwan','Ishara'];
-  for(let i=0;i<8;i++){
-    setTimeout(()=>{
-      const s=document.createElement('span');
-      s.className='float-name';
-      s.textContent=names[Math.floor(Math.random()*names.length)];
-      s.style.left=Math.random()*82+8+'%';
-      s.style.bottom=Math.random()*50+5+'%';
-      s.style.animationDelay=Math.random()*0.4+'s';
-      document.getElementById('namesLayer').appendChild(s);
-      setTimeout(()=>s.remove(),4000);
-    },i*160);
+
+  // names wave 1 — immediate celebration
+  const names=['Dilini','Kasun','Nimal','Sewwandi','Amara','Thilini','Roshan','Priya','Sahan','Chamara','Ruwan','Ishara','Kavya','Lasith'];
+  function spawnName(){
+    const s=document.createElement('span');
+    s.className='float-name';
+    s.textContent=names[Math.floor(Math.random()*names.length)];
+    s.style.left=Math.random()*82+8+'%';
+    s.style.bottom=Math.random()*50+5+'%';
+    s.style.animationDelay=Math.random()*0.3+'s';
+    document.getElementById('namesLayer').appendChild(s);
+    setTimeout(()=>s.remove(),4200);
   }
+  for(let i=0;i<8;i++)setTimeout(spawnName,i*140);
+
+  // fade out pre-claim content
+  const pre=document.getElementById('preClaim');
+  setTimeout(()=>{pre.style.opacity='0';},900);
+  setTimeout(()=>{
+    pre.style.display='none';
+
+    // reveal post-claim
+    const pc=document.getElementById('postClaim');
+    pc.classList.add('show');
+    document.getElementById('s8').classList.add('claimed');
+    document.getElementById('s8').scrollTop=0;
+
+    // names wave 2 — gentle, sparse, ongoing
+    let waveCount=0;
+    const waveTimer=setInterval(()=>{
+      if(cur!==7||waveCount>20){clearInterval(waveTimer);return;}
+      spawnName();waveCount++;
+    },1800);
+
+    if(snd){tone(349,1.4,0.06);setTimeout(()=>tone(440,0.8,0.05),600);}
+  },1500);
 }
 function doAct(el,type,msg){
   initA();tClick();vib([18]);
